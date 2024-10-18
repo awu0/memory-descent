@@ -28,32 +28,32 @@ public class LevelController : MonoBehaviour
 
     }
 
-    void PlaceMap(int[,] map, float y)
+    void PlaceMap(int[,] map, float y_pos)
     {
         // where to put the new block
-        float x = INITIAL_X_POS;
-        float z = INITIAL_Z_POS;
+        float x_pos = INITIAL_X_POS;
+        float z_pos = INITIAL_Z_POS;
 
         // row is the x, col is the z
         for (int row = 0; row < map.GetLength(0); row++)
         {
-            x = INITIAL_X_POS;
+            x_pos = INITIAL_X_POS;
             for (int col = 0; col < map.GetLength(1); col++)
             {
                 GameObject newGround;
                 if (map[row, col] == 0) {
-                    newGround = Instantiate(groundMaterial, new Vector3(x, y, z), Quaternion.identity);
+                    newGround = Instantiate(groundMaterial, new Vector3(x_pos, y_pos, z_pos), Quaternion.identity);
                 } else {
-                    newGround = Instantiate(routeMaterial, new Vector3(x, y, z), Quaternion.identity);
+                    newGround = Instantiate(routeMaterial, new Vector3(x_pos, y_pos, z_pos), Quaternion.identity);
                 }
 
                 // calculate next block's location
                 Renderer groundRenderer = newGround.GetComponentInChildren<Renderer>();
                 Vector3 objectSize = groundRenderer.bounds.size;
-                x += objectSize.x;
+                x_pos += objectSize.x;
 
                 // new row after all the blocks are placed
-                if (col == map.GetLength(1) - 1) z += objectSize.z;
+                if (col == map.GetLength(1) - 1) z_pos += objectSize.z;
             }
         }
     }
