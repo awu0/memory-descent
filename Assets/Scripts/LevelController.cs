@@ -15,7 +15,7 @@ public class LevelController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        currentMap = GenerateLevel.GenerateArray(5);
+        currentMap = GenerateLevel.GenerateArray(10);
 
         GenerateLevel.ConstructPath(currentMap);
 
@@ -53,7 +53,7 @@ public class LevelController : MonoBehaviour
                 x_pos += objectSize.x;
 
                 // new row after all the blocks are placed
-                if (col == map.GetLength(1) - 1) z_pos += objectSize.z;
+                if (col == map.GetLength(1) - 1) z_pos -= objectSize.z;
             }
         }
     }

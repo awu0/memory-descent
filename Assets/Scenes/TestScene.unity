@@ -455,9 +455,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50df058e8e0a343799356a2ddeb8e5ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groundMaterial: {fileID: 919132149155446097, guid: 496638e500fc54418b3650e97b5a52be,
+  groundMaterial: {fileID: 919132149155446097, guid: aab70b1ba74f5403aaab2f98e2ef219b,
     type: 3}
-  routeMaterial: {fileID: 919132149155446097, guid: aab70b1ba74f5403aaab2f98e2ef219b,
+  routeMaterial: {fileID: 919132149155446097, guid: 496638e500fc54418b3650e97b5a52be,
     type: 3}
 --- !u!4 &1988536987
 Transform:
