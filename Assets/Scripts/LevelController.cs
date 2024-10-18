@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class LevelController : MonoBehaviour
 {
-    private readonly float INITIAL_X_POS = 0;
-    private readonly float INITIAL_Z_POS = 0;
+    public float INITIAL_X_POS = 0;
+    public float INITIAL_Z_POS = 0;
 
     public GameObject groundMaterial;
     public GameObject routeMaterial;
@@ -41,9 +41,12 @@ public class LevelController : MonoBehaviour
             for (int col = 0; col < map.GetLength(1); col++)
             {
                 GameObject newGround;
-                if (map[row, col] == 0) {
+                if (map[row, col] == 0)
+                {
                     newGround = Instantiate(groundMaterial, new Vector3(x_pos, y_pos, z_pos), Quaternion.identity);
-                } else {
+                }
+                else
+                {
                     newGround = Instantiate(routeMaterial, new Vector3(x_pos, y_pos, z_pos), Quaternion.identity);
                 }
 

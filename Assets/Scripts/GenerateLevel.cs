@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class GenerateLevel : MonoBehaviour
 {
-
     // Start is called before the first frame update
     void Start()
     {
@@ -62,10 +61,11 @@ public class GenerateLevel : MonoBehaviour
             // also check bounds
             while (
                 (newRow == currentRow && newCol == currentCol) ||
-                previousDirection * -1 == direction ||
+                (previousDirection == -1 && direction == 1) ||
+                (previousDirection == 1 && direction == -1) ||
                 newRow < 0 ||
-                newRow >= LENGTH
-                // (newRow >= 0 && newRow < LENGTH && direction != 0 && map[newRow, newCol - 1] == 1)
+                newRow >= LENGTH ||
+                (newRow >= 0 && newRow < LENGTH && direction != 0 && map[newRow, currentCol - 1] == 1)
             )
             {
                 direction = Random.Range(-1, 2);
