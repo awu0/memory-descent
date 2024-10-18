@@ -15,9 +15,10 @@ public class LevelController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        currentMap = GenerateLevel.GenerateArray(10);
+        currentMap = GenerateLevel.GenerateArray(8);
 
         GenerateLevel.ConstructPath(currentMap);
+        // GenerateLevel.ConstructPathWeighted(currentMap, 0.2f);
 
         PlaceMap(currentMap, 0);
     }

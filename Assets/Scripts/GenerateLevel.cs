@@ -35,7 +35,7 @@ public class GenerateLevel : MonoBehaviour
     /// 0 is not on the path
     /// 1 is on the path
     /// </summary>
-    /// <param name="map"></param>
+    /// <param name="map">The 2d array of the map (should have all zeros)</param>
     public static void ConstructPath(int[,] map)
     {
         int WIDTH = map.GetLength(0);
@@ -78,7 +78,72 @@ public class GenerateLevel : MonoBehaviour
                 }
             }
 
-            // Debug.Log(newRow.ToString() + ", " + newCol.ToString());
+            previousDirection = direction;
+            currentRow = newRow;
+            currentCol = newCol;
+            map[currentRow, currentCol] = 1;
+        }
+    }
+
+    /// <summary>
+    /// Generate the path the player has to take for the level.
+    /// 0 is not on the path
+    /// 1 is on the path
+    /// </summary>
+    /// <param name="map">The 2d array of the map (should have all zeros)</param>
+    /// <param name="chancePathGoesRight">Chance of the path going to the right, lower the probablity if you want more up and downs in the path</param>
+    public static void ConstructPathWeighted(int[,] map, float chancePathGoesRight = 0.333f) {
+        int WIDTH = map.GetLength(0);
+        int LENGTH = map.GetLength(1);
+
+        // Start at a random row in the first column
+        int currentRow = Random.Range(0, WIDTH);
+        int currentCol = 0;
+
+        map[currentRow, currentCol] = 1; // Mark the starting position
+        currentCol++;
+        map[currentRow, currentCol] = 1; // The next position has to go to the right
+
+        int previousDirection = 0;
+        while (currentCol < LENGTH - 1)
+        {
+            int direction = Random.Range(-1, 2); // -1 for up, 0 for right, 1 for down
+            int newRow = currentRow;
+            int newCol = currentCol;
+
+            // prevent reversing directions (i.e. last direction was up, but this direction is down)
+            // also check bounds
+            while (
+                (newRow == currentRow && newCol == currentCol) ||
+                (previousDirection == -1 && direction == 1) ||
+                (previousDirection == 1 && direction == -1) ||
+                newRow < 0 ||
+                newRow >= LENGTH ||
+                (newRow >= 0 && newRow < LENGTH && direction != 0 && map[newRow, currentCol - 1] == 1)
+            )
+            {
+                // Choose a direction: right, up, or down
+
+                float randomValue = Random.Range(0f, 1f);
+
+                // If the random value is less than CHANCE, move right (0)
+                if (randomValue < chancePathGoesRight)
+                {
+                    direction = 0; // Move right
+                }
+                else
+                {
+                    // If not moving right, randomly choose up (-1) or down (1)
+                    direction = Random.Range(0, 2) == 0 ? -1 : 1;
+                }
+
+                newRow = currentRow + direction;
+                newCol = currentCol;
+                if (direction == 0)
+                {
+                    newCol = currentCol + 1;
+                }
+            }
 
             previousDirection = direction;
             currentRow = newRow;
