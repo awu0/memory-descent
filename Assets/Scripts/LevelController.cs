@@ -1,11 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class LevelController : MonoBehaviour
 {
     public float INITIAL_X_POS = 0;
     public float INITIAL_Z_POS = 0;
+    public TextMeshProUGUI levelNumberText;
+
+    public float hideTilesTime; // Time in seconds before tiles are hidden
 
     public GameObject groundMaterial;
     public GameObject routeMaterial;
@@ -16,12 +20,13 @@ public class LevelController : MonoBehaviour
 
     private int currentLevelIndex = 0;
     private int[,] currentMap;
-
+    private List<int[,]> currentMapList; // Stores all maps generated in order
     private GameObject currentLevelParent; // Parent GameObject for current level tiles
 
     // Start is called before the first frame update
     void Start()
     {
+        currentMapList = new List<int[,]>();
         BuildLevel(currentLevelIndex); // Updated method name
     }
 
@@ -35,16 +40,28 @@ public class LevelController : MonoBehaviour
 
         currentLevelParent = new GameObject("Level_" + levelIndex);
 
-        currentMap = GenerateLevel.GenerateArray(gridSize);
-        GenerateLevel.GeneratePath(currentMap);
-        GenerateLevel.PadMapEdges(currentMap);
+        // if level not generated already, generate new one
+        if (levelIndex > currentMapList.Count - 1)
+        {
+            currentMap = GenerateLevel.GenerateArray(gridSize);
+            GenerateLevel.GeneratePath(currentMap);
+            GenerateLevel.PadMapEdges(currentMap);
 
-        // Optionally, add obstacles here if desired
-        // GenerateLevel.AddObstacles(currentMap);
+            // Optionally, add obstacles here if desired
+            // GenerateLevel.AddObstacles(currentMap);
+
+            currentMapList.Add(currentMap);
+        }
+        else
+        {
+            currentMap = currentMapList[levelIndex];
+        }
+        
 
         // Place the map at the appropriate height
         float y_pos = 0; // Since we only render one level at a time, y_pos can be zero
         PlaceMap(currentMap, y_pos);
+        levelNumberText.text = $"Level: {currentLevelIndex + 1}";
     }
 
     void PlaceMap(int[,] map, float y_pos)
@@ -104,6 +121,27 @@ public class LevelController : MonoBehaviour
         {
             // Game Completed
             Debug.Log("You Win!");
+            // Implement game completion logic here
+            return;
+        }
+
+        BuildLevel(currentLevelIndex); // Updated method name
+
+        // Move player to starting position
+        PlayerController player = FindObjectOfType<PlayerController>();
+        if (player != null)
+        {
+            player.ResetPosition();
+        }
+    }
+
+    public void BackToPreviousLevel()
+    {
+        currentLevelIndex--;
+        if (currentLevelIndex < 0)
+        {
+            // Game Completed
+            Debug.Log("You Lose!");
             // Implement game completion logic here
             return;
         }

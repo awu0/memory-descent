@@ -81,7 +81,11 @@ public class PlayerController : MonoBehaviour
         int[,] currentMap = levelController.GetCurrentMap();
         int terrainType = currentMap[row, col];
 
-        if (terrainType == (int)GenerateLevel.TerrainType.Obstacle)
+
+        //if (terrainType == (int)GenerateLevel.TerrainType.Obstacle)
+
+        // changed to if not path, fall down
+        if (terrainType != (int)GenerateLevel.TerrainType.Path)
         {
             Debug.Log("OBSTACLE HIT");
             // Start falling
@@ -113,10 +117,12 @@ public class PlayerController : MonoBehaviour
     IEnumerator FallDown()
     {
         isFalling = true;
+        levelController.BackToPreviousLevel();
 
         // Since we only have one level at a time, falling means game over
-        Debug.Log("Game Over");
+        //Debug.Log("Game Over");
         // Implement game over logic here
+
 
         // Optionally reset the game or display a game over screen
         yield break;
