@@ -90,10 +90,18 @@ public class PlayerController : MonoBehaviour
         else if (col == levelController.gridSize - 1)
         {
             // Reached the right edge, move to the next level
-            levelController.AdvanceToNextLevel();
+            StartCoroutine(CountdownToNextLevel());
         }
     }
+    IEnumerator CountdownToNextLevel()
+    {
+        // Wait for 1.5 seconds total (0.5s * 3 steps)
+        yield return new WaitForSeconds(0.5f);
 
+        Debug.Log("NEXT LEVEL");
+        // Advance to the next level after countdown completes
+        levelController.AdvanceToNextLevel();
+    }
     void GetGridPosition(Vector3 position, out int row, out int col)
     {
         float tileSize = levelController.groundMaterial.GetComponentInChildren<Renderer>().bounds.size.x;
