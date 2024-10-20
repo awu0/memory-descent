@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GenerateLevel : MonoBehaviour
 {
-    public enum TerrainType { Path, Grass, Water, Sand, Obstacle }
+    public enum TerrainType { Path, Grass, Water, Sand, Obstacle, Edge }
 
     public int gridSize = 10;           // You can scale this value to increase complexity dynamically
 
@@ -27,7 +27,7 @@ public class GenerateLevel : MonoBehaviour
         {
             for (int y = 0; y < size; y++)
             {
-                map[x, y] = (int)TerrainType.Grass; // Default terrain is grass
+                map[x, y] = (int)TerrainType.Obstacle; // Default terrain is obstacles
             }
         }
         return map;
@@ -41,8 +41,8 @@ public class GenerateLevel : MonoBehaviour
         int size = map.GetLength(0); // Assuming a square map
         for (int row = 0; row < size; row++)
         {
-            map[row, 0] = (int)TerrainType.Path;               // Leftmost column
-            map[row, size - 1] = (int)TerrainType.Path;        // Rightmost column
+            map[row, 0] = (int)TerrainType.Edge;               // Leftmost column
+            map[row, size - 1] = (int)TerrainType.Edge;        // Rightmost column
         }
     }
 

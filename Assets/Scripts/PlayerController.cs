@@ -5,7 +5,8 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     private LevelController levelController;
-    private bool isFalling = false;
+    // controlled by level controller to set when player is allowed to move
+    public bool allowedToMove = false;
 
     void Start()
     {
@@ -23,7 +24,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (isFalling)
+        if (!allowedToMove)
             return;
 
         HandleMovement();
@@ -84,8 +85,8 @@ public class PlayerController : MonoBehaviour
 
         //if (terrainType == (int)GenerateLevel.TerrainType.Obstacle)
 
-        // changed to if not path, fall down
-        if (terrainType != (int)GenerateLevel.TerrainType.Path)
+        // if obstacle, fall down
+        if (terrainType == (int)GenerateLevel.TerrainType.Obstacle)
         {
             Debug.Log("OBSTACLE HIT");
             // Start falling
@@ -97,15 +98,18 @@ public class PlayerController : MonoBehaviour
             StartCoroutine(CountdownToNextLevel());
         }
     }
+
     IEnumerator CountdownToNextLevel()
     {
+        allowedToMove = false;
         // Wait for 1.5 seconds total (0.5s * 3 steps)
         yield return new WaitForSeconds(0.5f);
 
-        Debug.Log("NEXT LEVEL");
+        //Debug.Log("NEXT LEVEL");
         // Advance to the next level after countdown completes
         levelController.AdvanceToNextLevel();
     }
+
     void GetGridPosition(Vector3 position, out int row, out int col)
     {
         float tileSize = levelController.groundMaterial.GetComponentInChildren<Renderer>().bounds.size.x;
@@ -116,7 +120,7 @@ public class PlayerController : MonoBehaviour
 
     IEnumerator FallDown()
     {
-        isFalling = true;
+        allowedToMove = false;
         levelController.BackToPreviousLevel();
 
         // Since we only have one level at a time, falling means game over
@@ -136,6 +140,5 @@ public class PlayerController : MonoBehaviour
         float startZ = levelController.INITIAL_Z_POS - ((levelController.gridSize - 1) / 2) * tileSize;
 
         transform.position = new Vector3(startX, 1f, startZ);
-        isFalling = false;
     }
 }
