@@ -9,7 +9,6 @@ public class LevelController : MonoBehaviour
 {
     public float INITIAL_X_POS = 0;
     public float INITIAL_Z_POS = 0;
-    
 
     public float hideTilesTime = 3f; // Time in seconds before tiles are hidden
 
@@ -20,6 +19,7 @@ public class LevelController : MonoBehaviour
     public int startGridSize = 6; // starting grid size
     public int increaseGridInterval = 2; // increase grid size after every 2 levels
     public float cameraZoomChange = 1.25f; // how much to zoom out/in camera
+    public float levelTransitionTime = 1f; // time for moving levels while transitioning
     public int totalLevels = 5; // Total number of levels in the game
     public int gridSize; // current grid size. shouldn't be changed in editor
 
@@ -29,6 +29,7 @@ public class LevelController : MonoBehaviour
     private GameObject currentLevelParent; // Parent GameObject for current level tiles
 
     private PlayerController player;
+    private IsometricCamera isoCamera;
 
     [Header("User Interface")]
     public TextMeshProUGUI levelNumberText;
@@ -36,19 +37,43 @@ public class LevelController : MonoBehaviour
     public GameObject LoseScreen;
     public TextMeshProUGUI highscoreText;
 
+    private Vector3 oldLevelTarget;     // lerp target for position of old level
+    private GameObject oldLevelParent;  // parent of old level
+    private Vector3 newLevelStart;     // lerp start for position of new level
+    private float transitionTimeElapsed;// used to control lerp alpha
+
     // Start is called before the first frame update
     void Start()
     {
         gridSize = startGridSize;
         currentMapList = new List<int[,]>();
         player = FindObjectOfType<PlayerController>();
-        BuildLevel(currentLevelIndex); // Updated method name
+        isoCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<IsometricCamera>();
+        BuildLevel(currentLevelIndex, 0f); // Updated method name
         player.ResetPosition();
         WinScreen.SetActive(false);
         LoseScreen.SetActive(false);
+        transitionTimeElapsed = levelTransitionTime;
     }
 
-    public void BuildLevel(int levelIndex) // Renamed from GenerateLevel to BuildLevel
+    void Update()
+    {
+        if (transitionTimeElapsed < levelTransitionTime)
+        {
+            oldLevelParent.transform.position =
+                Vector3.Lerp(Vector3.zero, oldLevelTarget, transitionTimeElapsed / levelTransitionTime);
+            currentLevelParent.transform.position =
+                Vector3.Lerp(newLevelStart, Vector3.zero, transitionTimeElapsed / levelTransitionTime);
+
+            transitionTimeElapsed += Time.deltaTime;
+        }
+        else
+        {
+            currentLevelParent.transform.position = Vector3.zero;
+        }
+    }
+
+    public void BuildLevel(int levelIndex, float y_pos) // Renamed from GenerateLevel to BuildLevel
     {
         // if level not generated already, generate new one
         if (levelIndex > currentMapList.Count - 1)
@@ -67,22 +92,17 @@ public class LevelController : MonoBehaviour
             currentMap = currentMapList[levelIndex];
         }
         
-
         // Place the map at the appropriate height
-        float y_pos = 0; // Since we only render one level at a time, y_pos can be zero
         PlaceMap(currentMap, y_pos);
-        StartCoroutine(HideMap(currentMap, y_pos));
+        StartCoroutine(HideMap(currentMap, 0f));
         levelNumberText.text = $"Level: {currentLevelIndex + 1}";
     }
 
     void PlaceMap(int[,] map, float y_pos)
     {
-        // Clean up previous level
-        if (currentLevelParent != null)
-        {
-            Destroy(currentLevelParent);
-        }
         currentLevelParent = new GameObject("Level_" + currentLevelIndex);
+        currentLevelParent.transform.position = new Vector3(currentLevelParent.transform.position.x, y_pos,
+            currentLevelParent.transform.position.z);
 
         Renderer tempRenderer = groundMaterial.GetComponentInChildren<Renderer>();
         float x_size = tempRenderer.bounds.size.x;
@@ -101,7 +121,7 @@ public class LevelController : MonoBehaviour
             for (int col = 0; col < map.GetLength(1); col++)
             {
                 GameObject newTile;
-                Vector3 position = new Vector3(x_pos, y_pos, z_pos);
+                Vector3 position = new Vector3(x_pos, currentLevelParent.transform.position.y, z_pos);
 
                 if (map[row, col] == (int)GenerateLevel.TerrainType.Grass)
                 {
@@ -134,14 +154,16 @@ public class LevelController : MonoBehaviour
 
     IEnumerator HideMap(int[,] map, float y_pos)
     {
-        yield return new WaitForSeconds(hideTilesTime);
+        yield return new WaitForSeconds(levelTransitionTime + hideTilesTime);
 
         // UNCOMMENT THESE TO DESTROY VISIBLE MAP FIRST
-        //if (currentLevelParent != null)
-        //{
-        //    Destroy(currentLevelParent);
-        //}
-        //currentLevelParent = new GameObject("Level_" + currentLevelIndex);
+        if (currentLevelParent != null)
+        {
+            Destroy(currentLevelParent);
+        }
+        currentLevelParent = new GameObject("Level_" + currentLevelIndex);
+        currentLevelParent.transform.position = new Vector3(currentLevelParent.transform.position.x, y_pos,
+            currentLevelParent.transform.position.z);
 
         Renderer tempRenderer = groundMaterial.GetComponentInChildren<Renderer>();
         float x_size = tempRenderer.bounds.size.x;
@@ -159,7 +181,7 @@ public class LevelController : MonoBehaviour
             for (int col = 0; col < map.GetLength(1); col++)
             {
                 GameObject newTile;
-                Vector3 position = new Vector3(x_pos, y_pos, z_pos);
+                Vector3 position = new Vector3(x_pos, currentLevelParent.transform.position.y, z_pos);
 
                 if (map[row, col] == (int)GenerateLevel.TerrainType.Edge)
                 {
@@ -183,6 +205,10 @@ public class LevelController : MonoBehaviour
         // map is now hidden so allow player to move
         if (player != null)
             player.allowedToMove = true;
+
+        // destroy previous level if it exists
+        if (oldLevelParent != null)
+            Destroy(oldLevelParent);
     }
 
     public int[,] GetCurrentMap()
@@ -205,13 +231,20 @@ public class LevelController : MonoBehaviour
             return;
         }
 
+        // increase grid size
         if (currentLevelIndex % increaseGridInterval == 0)
         {
             gridSize += 1;
-            Camera.main.orthographicSize += cameraZoomChange;
+            isoCamera.ChangeOrthographicSize(cameraZoomChange);
         }
 
-        BuildLevel(currentLevelIndex); // Updated method name
+        // move old level down
+        oldLevelTarget = new Vector3(0f, -50f, 0f);
+        oldLevelParent = currentLevelParent;
+        newLevelStart = new Vector3(0f, 50f, 0f);
+        transitionTimeElapsed = 0f;
+
+        BuildLevel(currentLevelIndex, 50f); // Updated method name
 
         // Move player to starting position
         if (player != null)
@@ -237,10 +270,16 @@ public class LevelController : MonoBehaviour
         if ((currentLevelIndex+1) % increaseGridInterval == 0)
         {
             gridSize -= 1;
-            Camera.main.orthographicSize -= cameraZoomChange;
+            isoCamera.ChangeOrthographicSize(-cameraZoomChange);
         }
 
-        BuildLevel(currentLevelIndex); // Updated method name
+        // move old level up
+        oldLevelTarget = new Vector3(0f, 50f, 0f);
+        oldLevelParent = currentLevelParent;
+        newLevelStart = new Vector3(0f, -50f, 0f);
+        transitionTimeElapsed = 0f;
+
+        BuildLevel(currentLevelIndex, -50f); // Updated method name
 
         // Move player to starting position
         if (player != null)

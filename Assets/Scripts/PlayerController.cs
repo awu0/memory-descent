@@ -1,12 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using UnityEngine;
+using Vector3 = UnityEngine.Vector3;
 
 public class PlayerController : MonoBehaviour
 {
     private LevelController levelController;
     // controlled by level controller to set when player is allowed to move
     public bool allowedToMove = false;
+
+    private Vector3 oldPosition;    // stores old position of player while transitioning levels
+    private Vector3 targetPosition; // stores target position ^
+    private float transitionDuration; // copied from level controller
+    private float timeElapsed;      // controls lerp alpha
+
 
     void Start()
     {
@@ -18,16 +26,26 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // Position the player at the starting point
-        ResetPosition();
+        transitionDuration = levelController.levelTransitionTime;
     }
 
     void Update()
     {
         if (!allowedToMove)
-            return;
-
-        HandleMovement();
+        {
+            if (timeElapsed < transitionDuration)
+            {
+                transform.position =
+                    Vector3.Lerp(oldPosition, targetPosition, timeElapsed / transitionDuration);
+                timeElapsed += Time.deltaTime;
+            }
+            else
+            {
+                transform.position = targetPosition;
+            }
+        }
+        else
+            HandleMovement();
     }
 
     void HandleMovement()
@@ -82,32 +100,17 @@ public class PlayerController : MonoBehaviour
         int[,] currentMap = levelController.GetCurrentMap();
         int terrainType = currentMap[row, col];
 
-
-        //if (terrainType == (int)GenerateLevel.TerrainType.Obstacle)
-
         // if obstacle, fall down
         if (terrainType == (int)GenerateLevel.TerrainType.Obstacle)
         {
-            Debug.Log("OBSTACLE HIT");
             // Start falling
-            StartCoroutine(FallDown());
+            FallDown();
         }
         else if (col == levelController.gridSize - 1)
         {
             // Reached the right edge, move to the next level
-            StartCoroutine(CountdownToNextLevel());
+            MoveToNextLevel();
         }
-    }
-
-    IEnumerator CountdownToNextLevel()
-    {
-        allowedToMove = false;
-        // Wait for 1.5 seconds total (0.5s * 3 steps)
-        yield return new WaitForSeconds(0.5f);
-
-        //Debug.Log("NEXT LEVEL");
-        // Advance to the next level after countdown completes
-        levelController.AdvanceToNextLevel();
     }
 
     void GetGridPosition(Vector3 position, out int row, out int col)
@@ -118,27 +121,28 @@ public class PlayerController : MonoBehaviour
         row = Mathf.RoundToInt((levelController.INITIAL_Z_POS - position.z) / tileSize);
     }
 
-    IEnumerator FallDown()
+    void MoveToNextLevel()
+    {
+        allowedToMove = false;
+        levelController.AdvanceToNextLevel();
+    }
+
+    void FallDown()
     {
         allowedToMove = false;
         levelController.BackToPreviousLevel();
-
-        // Since we only have one level at a time, falling means game over
-        //Debug.Log("Game Over");
-        // Implement game over logic here
-
-
-        // Optionally reset the game or display a game over screen
-        yield break;
     }
 
     public void ResetPosition()
     {
+        allowedToMove = false;
         // Position the player at the starting point
         float tileSize = levelController.groundMaterial.GetComponentInChildren<Renderer>().bounds.size.x;
         float startX = levelController.INITIAL_X_POS;
         float startZ = levelController.INITIAL_Z_POS - ((levelController.gridSize - 1) / 2) * tileSize;
 
-        transform.position = new Vector3(startX, 1f, startZ);
+        targetPosition = new Vector3(startX, 1f, startZ);
+        oldPosition = transform.position;
+        timeElapsed = 0f;
     }
 }
