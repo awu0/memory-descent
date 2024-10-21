@@ -231,6 +231,9 @@ public class LevelController : MonoBehaviour
             return;
         }
 
+        // Play sound
+        SoundManager.instance.PlayAdvanceToNextLevelSound();
+
         // increase grid size
         if (currentLevelIndex % increaseGridInterval == 0)
         {
@@ -267,6 +270,10 @@ public class LevelController : MonoBehaviour
             return;
         }
 
+        // Play sound
+        SoundManager.instance.PlayFallPreviousLevelSound();
+
+        // Decrease grid size
         if ((currentLevelIndex+1) % increaseGridInterval == 0)
         {
             gridSize -= 1;

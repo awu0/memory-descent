@@ -70,6 +70,7 @@ public class PlayerController : MonoBehaviour
             // Check if the target position is within the grid bounds
             if (IsWithinGridBounds(targetPosition))
             {
+                SoundManager.instance.PlayMovementSound();
                 transform.position = targetPosition;
                 CheckTile();
             }
