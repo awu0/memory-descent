@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 public class LevelController : MonoBehaviour
 {
@@ -16,8 +17,11 @@ public class LevelController : MonoBehaviour
     public GameObject routeMaterial;
     public GameObject obstacleMaterial; // Obstacle tile prefab
 
-    public int gridSize = 8;
+    public int startGridSize = 6; // starting grid size
+    public int increaseGridInterval = 2; // increase grid size after every 2 levels
+    public float cameraZoomChange = 1.25f; // how much to zoom out/in camera
     public int totalLevels = 5; // Total number of levels in the game
+    public int gridSize; // current grid size. shouldn't be changed in editor
 
     private int currentLevelIndex = 0;
     private int[,] currentMap;
@@ -35,9 +39,11 @@ public class LevelController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        gridSize = startGridSize;
         currentMapList = new List<int[,]>();
         player = FindObjectOfType<PlayerController>();
         BuildLevel(currentLevelIndex); // Updated method name
+        player.ResetPosition();
         WinScreen.SetActive(false);
         LoseScreen.SetActive(false);
     }
@@ -77,6 +83,12 @@ public class LevelController : MonoBehaviour
             Destroy(currentLevelParent);
         }
         currentLevelParent = new GameObject("Level_" + currentLevelIndex);
+
+        Renderer tempRenderer = groundMaterial.GetComponentInChildren<Renderer>();
+        float x_size = tempRenderer.bounds.size.x;
+        float z_size = tempRenderer.bounds.size.z;
+        INITIAL_X_POS = -(((float)gridSize / 2) - 0.5f) * x_size;
+        INITIAL_Z_POS = (((float)gridSize / 2) - 0.5f) * z_size;
 
         // Where to place the new block
         float x_pos = INITIAL_X_POS;
@@ -130,6 +142,12 @@ public class LevelController : MonoBehaviour
         //    Destroy(currentLevelParent);
         //}
         //currentLevelParent = new GameObject("Level_" + currentLevelIndex);
+
+        Renderer tempRenderer = groundMaterial.GetComponentInChildren<Renderer>();
+        float x_size = tempRenderer.bounds.size.x;
+        float z_size = tempRenderer.bounds.size.z;
+        INITIAL_X_POS = -(((float)gridSize / 2) - 0.5f) * x_size;
+        INITIAL_Z_POS = (((float)gridSize / 2) - 0.5f) * z_size;
 
         // Where to place the new block
         float x_pos = INITIAL_X_POS;
@@ -187,6 +205,12 @@ public class LevelController : MonoBehaviour
             return;
         }
 
+        if (currentLevelIndex % increaseGridInterval == 0)
+        {
+            gridSize += 1;
+            Camera.main.orthographicSize += cameraZoomChange;
+        }
+
         BuildLevel(currentLevelIndex); // Updated method name
 
         // Move player to starting position
@@ -208,6 +232,12 @@ public class LevelController : MonoBehaviour
                 player.allowedToMove = false;
             ShowGameOverScreen(false);
             return;
+        }
+
+        if ((currentLevelIndex+1) % increaseGridInterval == 0)
+        {
+            gridSize -= 1;
+            Camera.main.orthographicSize -= cameraZoomChange;
         }
 
         BuildLevel(currentLevelIndex); // Updated method name

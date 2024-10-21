@@ -32,9 +32,9 @@ public class IsometricCamera : MonoBehaviour
 
             // Update only the Y position to follow the player
             Vector3 cameraPosition = new Vector3(
-                fixedPosition.x,
+                transform.position.x,
                 smoothedY,
-                fixedPosition.z
+                transform.position.z
             );
             transform.position = cameraPosition;
         }

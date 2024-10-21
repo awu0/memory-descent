@@ -65,10 +65,10 @@ public class PlayerController : MonoBehaviour
         int gridSize = levelController.gridSize;
 
         float minX = levelController.INITIAL_X_POS;
-        float maxX = minX + tileSize * (gridSize);
+        float maxX = -levelController.INITIAL_X_POS;
 
         float maxZ = levelController.INITIAL_Z_POS;
-        float minZ = maxZ - tileSize * (gridSize);
+        float minZ = -levelController.INITIAL_Z_POS;
 
         return position.x >= minX && position.x <= maxX && position.z >= minZ && position.z <= maxZ;
     }
