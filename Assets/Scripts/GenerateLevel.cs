@@ -82,6 +82,12 @@ public class GenerateLevel : MonoBehaviour
                 continue;
             }
 
+            // Double chances of moving up and down to get variety
+            if(possibleMoves.Contains("up"))
+                possibleMoves.Add("up");
+            if(possibleMoves.Contains("down"))
+                possibleMoves.Add("down");
+
             // Randomly select a move from the filtered list
             string move = possibleMoves[Random.Range(0, possibleMoves.Count)];
 
